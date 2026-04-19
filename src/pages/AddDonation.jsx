@@ -15,7 +15,7 @@ const AddDonation = () => {
     const [foodType, setFoodType] = useState('Cooked Meals');
     const [quantity, setQuantity] = useState('');
     const [description, setDescription] = useState('');
-    const [freshness, setFreshness] = useState(5); // 1-10
+    const [expiryHours, setExpiryHours] = useState(4); // Default 4 hours
     const [image, setImage] = useState(null);
 
     // Camera Refs
@@ -76,7 +76,7 @@ const AddDonation = () => {
                 foodType,
                 quantity: parseFloat(quantity),
                 description,
-                freshness,
+                expiryHours,
                 imageUrl: image,
                 lat: 0,
                 lng: 0,
@@ -115,14 +115,14 @@ const AddDonation = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Approximate Quantity (kg)</label>
+                            <label className="form-label">Approximate Quantity (units)</label>
                             <input
                                 type="number"
                                 className="form-control"
                                 value={quantity}
                                 onChange={(e) => setQuantity(e.target.value)}
                                 placeholder="e.g. 5"
-                                min="0.5" step="0.5"
+                                min="1" step="1"
                                 required
                             />
                         </div>
@@ -159,18 +159,18 @@ const AddDonation = () => {
                         <h3>Step 2: Verification Quality</h3>
 
                         <div className="form-group" style={{ marginTop: '1.5rem' }}>
-                            <label className="form-label">Freshness Gauge (1-10)</label>
+                            <label className="form-label">Expiry Time (Hours from now)</label>
                             <div className="flex-between" style={{ gap: '1rem' }}>
                                 <input
                                     type="range"
-                                    min="1" max="10"
-                                    value={freshness}
-                                    onChange={(e) => setFreshness(parseInt(e.target.value))}
+                                    min="1" max="48"
+                                    value={expiryHours}
+                                    onChange={(e) => setExpiryHours(parseInt(e.target.value))}
                                     style={{ flex: 1 }}
                                 />
-                                <span className="badge badge-active" style={{ fontSize: '1rem' }}>{freshness}/10</span>
+                                <span className="badge badge-active" style={{ fontSize: '1rem', minWidth: '80px', justifyContent: 'center' }}>{expiryHours} Hours</span>
                             </div>
-                            <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>* 10 means freshly cooked/prepared, 1 means near expiry.</p>
+                            <p style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>* How long is the food safe to consume? (Max 48 hours for fresh items)</p>
                         </div>
 
                         <div className="form-group" style={{ marginTop: '2rem' }}>

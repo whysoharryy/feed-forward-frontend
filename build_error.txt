@@ -1,0 +1,29 @@
+
+> food-waste-redistribution@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 2288 modules transformed.
+Γ£ù Build failed in 3.85s
+error during build:
+src/pages/LiveMapPage.jsx (15:9): "db" is not exported by "src/config/firebase.js", imported by "src/pages/LiveMapPage.jsx".
+file: C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food Waste Redistribution - Copy/Frontend/src/pages/LiveMapPage.jsx:15:9
+
+13: import { useAuth } from '../context/AuthContext';
+14: import { doc, setDoc } from 'firebase/firestore';
+15: import { db } from '../config/firebase';
+             ^
+16: 
+17: // --- CUSTOM ICONS ---
+
+    at getRollupError (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at Module.error (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:17040:16)
+    at Module.traceVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:17452:29)
+    at ModuleScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:15070:39)
+    at ReturnValueScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at ReturnValueScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at FunctionBodyScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)
+    at BlockScope.findVariable (file:///C:/Users/SREEHARI/OneDrive/Desktop/Projects/Food%20Waste%20Redistribution%20-%20Copy/Frontend/node_modules/rollup/dist/es/shared/node-entry.js:5673:38)

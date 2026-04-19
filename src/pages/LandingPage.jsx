@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion';
-import { Leaf, Menu, X, ArrowRight, ShieldCheck, Heart, MapPin, Camera, CheckSquare, BarChart3, Bell, Truck, Package, Search, Navigation } from 'lucide-react';
+import { Leaf, Menu, X, ArrowRight, ShieldCheck, Heart, MapPin, Camera, CheckSquare, BarChart3, Bell, Truck, Package, Search, Navigation, Sun, Moon, Languages } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 
 // --- Animated Counter Helper ---
 const Counter = ({ end, duration = 2, suffix = "", prefix = "" }) => {
@@ -38,9 +40,13 @@ const Counter = ({ end, duration = 2, suffix = "", prefix = "" }) => {
 
 const LandingPage = () => {
     const navigate = useNavigate();
+    const { theme, toggleTheme } = useTheme();
+    const { language, toggleLanguage } = useLanguage();
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [activeSection, setActiveSection] = useState('home');
+
+    const isDark = theme === 'dark';
 
     // References for parallax and spy
     const impactRef = useRef(null);
@@ -86,25 +92,27 @@ const LandingPage = () => {
 
     // Color Palette mapping specifically requested
     const colors = {
-        primary: "#1B5E20", // dark green
-        secondary: "#4CAF50", // solid green
-        accent1: "#A5D6A7", // mint/light green
-        accent2: "#E8F5E9", // very light green
-        white: "#FFFFFF",
-        textMain: "#111827",
-        textMuted: "#4B5563"
+        primary: isDark ? "#81C784" : "#1B5E20", // bright green for dark / dark green for light
+        secondary: isDark ? "#A5D6A7" : "#4CAF50", // soft emerald
+        accent1: isDark ? "#2E7D32" : "#A5D6A7", 
+        accent2: isDark ? "#1A1A1A" : "#E8F5E9", // surface back
+        white: isDark ? "#121212" : "#FFFFFF",
+        textMain: isDark ? "#F9FAFB" : "#111827",
+        textMuted: isDark ? "#9CA3AF" : "#4B5563",
+        navBg: isDark ? "rgba(18, 18, 18, 0.9)" : "rgba(255, 255, 255, 0.95)",
+        cardBg: isDark ? "#1E1E1E" : "#FFFFFF"
     };
 
     // Shared Styles
     const glassStyle = {
-        background: 'rgba(255, 255, 255, 0.75)',
+        background: isDark ? 'rgba(30, 30, 30, 0.75)' : 'rgba(255, 255, 255, 0.75)',
         backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255, 255, 255, 0.5)',
-        boxShadow: '0 8px 32px rgba(27, 94, 32, 0.08)'
+        border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(255, 255, 255, 0.5)',
+        boxShadow: isDark ? '0 8px 32px rgba(0, 0, 0, 0.4)' : '0 8px 32px rgba(27, 94, 32, 0.08)'
     };
 
     return (
-        <div style={{ backgroundColor: '#fafdfa', color: colors.textMain, overflowX: 'hidden', fontFamily: "'Inter', sans-serif" }}>
+        <div style={{ backgroundColor: colors.white, color: colors.textMain, overflowX: 'hidden', fontFamily: "'Inter', sans-serif", transition: 'background-color 0.3s' }}>
 
             {/* 1. CUSTOM STICKY NAVBAR */}
             <motion.nav
@@ -117,11 +125,13 @@ const LandingPage = () => {
                     height: '75px',
                     display: 'flex',
                     alignItems: 'center',
-                    background: scrolled ? 'rgba(255, 255, 255, 0.95)' : 'transparent',
+                    alignItems: 'center',
+                    background: scrolled ? colors.navBg : 'transparent',
                     backdropFilter: scrolled ? 'blur(10px)' : 'none',
-                    boxShadow: scrolled ? '0 4px 20px rgba(0,0,0,0.05)' : 'none',
+                    boxShadow: scrolled ? (isDark ? '0 4px 20px rgba(0,0,0,0.5)' : '0 4px 20px rgba(0,0,0,0.05)') : 'none',
                     zIndex: 1000,
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.3s ease',
+                    borderBottom: scrolled && isDark ? '1px solid rgba(255,255,255,0.1)' : 'none'
                 }}
             >
                 <div style={{ width: '100%', maxWidth: '1280px', margin: '0 auto', padding: '0 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -154,17 +164,30 @@ const LandingPage = () => {
                     </div>
 
                     {/* Desktop CTA */}
-                    <div style={{ display: 'none', gap: '1rem', alignItems: 'center' }} className="desktop-nav">
+                    <div style={{ display: 'none', gap: '1.2rem', alignItems: 'center' }} className="desktop-nav">
+                        <button onClick={toggleLanguage} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', color: colors.textMuted, fontSize: '0.9rem', fontWeight: 600 }}>
+                            <Languages size={18} /> {language === 'hi' ? 'Hindi' : 'English'}
+                        </button>
+                        
+                        <button onClick={toggleTheme} style={{ background: 'none', border: isDark ? '1px solid #333' : '1px solid #eee', padding: '0.4rem', borderRadius: '12px', cursor: 'pointer', color: isDark ? '#fbc02d' : '#555', transition: 'all 0.2s', display: 'flex', alignItems: 'center' }}>
+                            {isDark ? <Sun size={20} /> : <Moon size={20} />}
+                        </button>
+
                         <button onClick={() => navigate('/login')} style={{ background: 'none', border: 'none', fontWeight: 600, color: colors.primary, cursor: 'pointer', fontSize: '0.95rem' }}>Login</button>
-                        <button onClick={() => navigate('/signup')} style={{ background: colors.primary, color: '#fff', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '9999px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 14px rgba(27,94,32,0.3)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
+                        <button onClick={() => navigate('/signup')} style={{ background: colors.primary, color: '#fff', border: 'none', padding: '0.6rem 1.5rem', borderRadius: '9999px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: isDark ? '0 4px 14px rgba(0,0,0,0.4)' : '0 4px 14px rgba(27,94,32,0.3)' }} onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}>
                             Donate Food
                         </button>
                     </div>
 
                     {/* Mobile Toggle */}
-                    <button className="mobile-toggle" style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', color: colors.primary }} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                        {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-                    </button>
+                    <div className="mobile-toggle" style={{ gap: '1rem', alignItems: 'center' }}>
+                         <button onClick={toggleTheme} style={{ background: 'none', border: 'none', cursor: 'pointer', color: isDark ? '#fbc02d' : '#555' }}>
+                            {isDark ? <Sun size={24} /> : <Moon size={24} />}
+                        </button>
+                        <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: colors.primary }} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                            {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+                        </button>
+                    </div>
                 </div>
             </motion.nav>
 
@@ -176,7 +199,7 @@ const LandingPage = () => {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        style={{ position: 'fixed', top: '75px', right: 0, bottom: 0, width: '100%', maxWidth: '300px', background: '#fff', zIndex: 999, padding: '2rem', boxShadow: '-10px 0 30px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}
+                        style={{ position: 'fixed', top: '75px', right: 0, bottom: 0, width: '100%', maxWidth: '300px', background: colors.cardBg, zIndex: 999, padding: '2rem', boxShadow: isDark ? '-10px 0 30px rgba(0,0,0,0.5)' : '-10px 0 30px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', gap: '1.5rem', borderLeft: isDark ? '1px solid #333' : 'none' }}
                     >
                         {['home', 'how-it-works', 'features', 'impact', 'partners', 'contact'].map((item) => (
                             <button key={item} onClick={() => scrollTo(item)} style={{ background: 'none', border: 'none', textAlign: 'left', fontSize: '1.2rem', fontWeight: 600, color: activeSection === item ? colors.primary : colors.textMain, textTransform: 'capitalize' }}>
@@ -198,11 +221,11 @@ const LandingPage = () => {
                 display: 'flex',
                 alignItems: 'center',
                 paddingTop: '75px', // offset for nav
-                background: `linear-gradient(135deg, ${colors.accent2} 0%, #d1f2d3 100%)`, // soft emerald to mint
+                background: isDark ? `radial-gradient(at 0% 0%, #0d210e 0, transparent 50%), radial-gradient(at 50% 0%, #121212 0, transparent 50%), radial-gradient(at 100% 0%, #0d2e10 0, transparent 50%), #121212` : `linear-gradient(135deg, ${colors.accent2} 0%, #d1f2d3 100%)`, 
                 overflow: 'hidden'
             }}>
                 {/* Subtle Botanical Texture Overlay (CSS pattern) */}
-                <div style={{ position: 'absolute', inset: 0, opacity: 0.05, backgroundImage: 'radial-gradient(#1B5E20 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                <div style={{ position: 'absolute', inset: 0, opacity: isDark ? 0.02 : 0.05, backgroundImage: 'radial-gradient(#1B5E20 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
                 {/* Animated SVG Leaves */}
                 <motion.div animate={{ y: [0, -20, 0], rotate: [0, 5, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} style={{ position: 'absolute', top: '20%', left: '10%', opacity: 0.2 }}>
@@ -236,8 +259,34 @@ const LandingPage = () => {
                                 <button onClick={() => navigate('/signup')} className="pill-btn-outline" style={{ background: 'rgba(255,255,255,0.8)', color: colors.primary, border: `2px solid ${colors.secondary}`, padding: '1rem 2rem', borderRadius: '999px', fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s', backdropFilter: 'blur(5px)' }}>
                                     Join as NGO
                                 </button>
-                                <button onClick={() => navigate('/signup')} style={{ background: 'transparent', color: colors.primary, border: 'none', padding: '1rem 1rem', fontSize: '1.1rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
-                                    Become Volunteer
+                                <button 
+                                    onClick={() => navigate('/signup')} 
+                                    className="pill-btn-outline" 
+                                    style={{ 
+                                        background: 'rgba(255,255,255,0.7)', 
+                                        color: '#f57c00', // Warning orange to stand out
+                                        border: `2px solid #f57c00`, 
+                                        padding: '1rem 2rem', 
+                                        borderRadius: '999px', 
+                                        fontSize: '1.1rem', 
+                                        fontWeight: 700, 
+                                        cursor: 'pointer', 
+                                        transition: 'all 0.3s', 
+                                        backdropFilter: 'blur(5px)',
+                                        boxShadow: '0 4px 15px rgba(245, 124, 0, 0.1)'
+                                    }}
+                                    onMouseOver={e => {
+                                        e.currentTarget.style.background = '#f57c00';
+                                        e.currentTarget.style.color = '#fff';
+                                        e.currentTarget.style.boxShadow = '0 8px 25px rgba(245, 124, 0, 0.3)';
+                                    }}
+                                    onMouseOut={e => {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.7)';
+                                        e.currentTarget.style.color = '#f57c00';
+                                        e.currentTarget.style.boxShadow = '0 4px 15px rgba(245, 124, 0, 0.1)';
+                                    }}
+                                >
+                                    Volunteer with us
                                 </button>
                             </div>
                         </motion.div>
@@ -280,7 +329,7 @@ const LandingPage = () => {
             </section>
 
             {/* 3. HOW IT WORKS / TIMELINE */}
-            <section id="how-it-works" style={{ padding: '8rem 1.5rem', background: '#fff' }}>
+            <section id="how-it-works" style={{ padding: '8rem 1.5rem', background: colors.white, borderTop: isDark ? '1px solid #1a1a1a' : 'none' }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
                         <h2 style={{ fontSize: '2.5rem', color: colors.primary, marginBottom: '1rem' }}>How FeedForward Works</h2>
@@ -307,12 +356,12 @@ const LandingPage = () => {
                                 transition={{ duration: 0.5, delay: index * 0.2 }}
                                 className="hover-expand-card"
                                 style={{
-                                    background: '#fff', padding: '2.5rem', borderRadius: '24px', position: 'relative', zIndex: 1,
-                                    border: `1px solid ${colors.accent2}`, boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
+                                    background: isDark ? '#1e1e1e' : '#fff', padding: '2.5rem', borderRadius: '24px', position: 'relative', zIndex: 1,
+                                    border: isDark ? '1px solid #333' : `1px solid ${colors.accent2}`, boxShadow: '0 10px 30px rgba(0,0,0,0.03)',
                                     transition: 'all 0.3s ease', cursor: 'pointer'
                                 }}
                             >
-                                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: colors.accent2, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: `0 0 0 10px white, 0 0 20px ${colors.accent1}` }}>
+                                <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: isDark ? '#2e2e2e' : colors.accent2, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: isDark ? `0 0 0 10px #1e1e1e, 0 0 20px rgba(0,0,0,0.2)` : `0 0 0 10px white, 0 0 20px ${colors.accent1}` }}>
                                     {item.icon}
                                 </div>
                                 <div style={{ fontSize: '3rem', fontWeight: 900, color: colors.accent2, position: 'absolute', top: '10px', right: '20px', lineHeight: 1 }}>{item.step}</div>
@@ -328,18 +377,18 @@ const LandingPage = () => {
             <section id="features" style={{ padding: '8rem 1.5rem', background: colors.accent2 }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: '5rem' }}>
-                        <h2 style={{ fontSize: '2.5rem', color: colors.primary, marginBottom: '1rem' }}>Technology Built for Trust</h2>
+                        <h2 style={{ fontSize: '2.5rem', color: colors.primary, marginBottom: '1rem' }}>Technology Built for Impact</h2>
                         <p style={{ fontSize: '1.1rem', color: colors.textMuted }}>Enterprise-grade logistics disguised as a simple app.</p>
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
                         {[
-                            { title: 'Real-Time Tracking', icon: <Navigation />, desc: 'Live map integration ensures donors and NGOs always know the exact location of their food in transit.' },
+                            { title: 'Surplus Visibility', icon: <Search />, desc: 'Real-time discovery of verified food surplus items, ensuring NGOs can act quickly on available donations.' },
                             { title: 'Live Image Verification', icon: <Camera />, desc: 'Mandatory in-app camera captures eliminate stale food uploads and guarantee quality.' },
                             { title: 'Admin Approval', icon: <CheckSquare />, desc: 'A dedicated safety net. Platform admins review and verify bulk donations before they hit the feed.' },
-                            { title: 'Impact Dashboard', icon: <BarChart3 />, desc: 'Automated CSR reporting. Generate beautiful PDF reports of your CO2 and meal impact easily.' },
+                            { title: 'Impact Dashboard', icon: <BarChart3 />, desc: 'Automated CSR reporting. Generate detailed CSV reports of your CO2 and meal impact easily.' },
                             { title: 'Smart Notifications', icon: <Bell />, desc: 'Instant push alerts matching local surplus drop-offs with the closest available volunteers.' },
-                            { title: 'Location-Based Matching', icon: <MapPin />, desc: 'Geofencing algorithms prioritize matches within a 5km radius to preserve food temperature.' }
+                            { title: 'Proximity Matching', icon: <MapPin />, desc: 'Intelligent algorithms prioritize matches within a 5km radius to preserve food temperature and reduce transit time.' }
                         ].map((feat, idx) => (
                             <motion.div
                                 key={idx}
@@ -348,13 +397,14 @@ const LandingPage = () => {
                                 viewport={{ once: true }}
                                 transition={{ duration: 0.4, delay: idx * 0.1 }}
                                 style={{
-                                    background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)',
+                                    background: isDark ? 'rgba(40,40,40,0.6)' : 'rgba(255,255,255,0.6)', backdropFilter: 'blur(20px)',
                                     padding: '2rem', borderRadius: '1.5rem', /* 2xl corners */
-                                    boxShadow: '0 4px 24px rgba(0,0,0,0.04)', display: 'flex', gap: '1.5rem',
-                                    transition: 'transform 0.2s ease, background 0.2s', cursor: 'grab'
+                                    boxShadow: isDark ? '0 10px 30px rgba(0,0,0,0.3)' : '0 4px 24px rgba(0,0,0,0.04)', display: 'flex', gap: '1.5rem',
+                                    transition: 'transform 0.2s ease, background 0.2s', cursor: 'grab',
+                                    border: isDark ? '1px solid rgba(255,255,255,0.05)' : 'none'
                                 }}
-                                onMouseOver={e => e.currentTarget.style.background = '#fff'}
-                                onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.6)'}
+                                onMouseOver={e => e.currentTarget.style.background = isDark ? 'rgba(50,50,50,0.8)' : '#fff'}
+                                onMouseOut={e => e.currentTarget.style.background = isDark ? 'rgba(40,40,40,0.6)' : 'rgba(255,255,255,0.6)'}
                             >
                                 <div style={{ background: colors.primary, color: '#fff', padding: '1rem', borderRadius: '1rem', height: 'fit-content' }}>
                                     {feat.icon}
@@ -379,7 +429,7 @@ const LandingPage = () => {
                         y: yParallax, zIndex: 0
                     }}
                 />
-                <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(rgba(17, 24, 39, 0.8), rgba(27, 94, 32, 0.9))', zIndex: 1 }}></div>
+                <div style={{ position: 'absolute', inset: 0, background: isDark ? 'linear-gradient(rgba(0, 0, 0, 0.9), rgba(12, 45, 14, 0.95))' : 'linear-gradient(rgba(17, 24, 39, 0.8), rgba(27, 94, 32, 0.9))', zIndex: 1 }}></div>
 
                 <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', color: '#fff', maxWidth: '1000px', margin: '0 auto' }}>
                     <motion.h2
@@ -396,7 +446,7 @@ const LandingPage = () => {
                             { value: '828', suffix: 'M', label: 'People Sleep Hungry' },
                             { value: '1', prefix: '$', suffix: 'T', label: 'Lost to the Economy' }
                         ].map((stat, i) => (
-                            <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.2 }} style={{ padding: '2rem', background: 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.2)', flex: '1 1 250px' }}>
+                            <motion.div key={i} initial={{ opacity: 0, scale: 0.8 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.2 }} style={{ padding: '2rem', background: isDark ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)', borderRadius: '1.5rem', border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(255,255,255,0.2)', flex: '1 1 250px' }}>
                                 <div style={{ fontSize: '4rem', fontWeight: 900, color: colors.accent1, lineHeight: 1, marginBottom: '0.5rem' }}>
                                     <Counter end={stat.value} prefix={stat.prefix} suffix={stat.suffix} />
                                 </div>
@@ -408,24 +458,24 @@ const LandingPage = () => {
             </section>
 
             {/* 6. PARTNERS & TESTIMONIALS */}
-            <section id="partners" style={{ padding: '8rem 1.5rem', background: '#fff' }}>
+            <section id="partners" style={{ padding: '8rem 1.5rem', background: colors.white }}>
                 <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
                     <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-                        <h2 style={{ fontSize: '2.5rem', color: colors.primary, marginBottom: '1rem' }}>Trusted By Leaders</h2>
-                        <p style={{ fontSize: '1.1rem', color: colors.textMuted }}>Join an ecosystem of conscious brands and NGOs.</p>
+                        <h2 style={{ fontSize: '2.5rem', color: colors.primary, marginBottom: '1rem' }}>Join an ecosystem of conscious brands and NGOs.</h2>
                     </div>
 
                     {/* Grayscale hover logos */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '3rem' }}>
                         {[1, 2, 3, 4, 5].map(i => (
-                            <motion.img
-                                key={i}
-                                src={`https://cdn-icons-png.flaticon.com/512/990/${990800 + i}.png`} // Placeholder generic icons
-                                alt={`Partner ${i}`}
-                                initial={{ opacity: 0.5, filter: 'grayscale(100%)' }}
-                                whileHover={{ opacity: 1, filter: 'grayscale(0%)', scale: 1.1 }}
-                                style={{ height: '60px', width: 'auto', objectFit: 'contain', cursor: 'pointer', transition: 'all 0.3s' }}
-                            />
+                            <div key={i} style={{ background: isDark ? '#1a1a1a' : 'transparent', padding: '1rem', borderRadius: '12px' }}>
+                                <motion.img
+                                    src={`https://cdn-icons-png.flaticon.com/512/990/${990800 + i}.png`} // Placeholder generic icons
+                                    alt={`Partner ${i}`}
+                                    initial={{ opacity: 0.5, filter: isDark ? 'grayscale(100%) invert(0.8)' : 'grayscale(100%)' }}
+                                    whileHover={{ opacity: 1, filter: isDark ? 'grayscale(0%) invert(0)' : 'grayscale(0%)', scale: 1.1 }}
+                                    style={{ height: '50px', width: 'auto', objectFit: 'contain', cursor: 'pointer', transition: 'all 0.3s' }}
+                                />
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -434,7 +484,7 @@ const LandingPage = () => {
             {/* 7. FINAL CTA */}
             <section id="contact" style={{
                 padding: '8rem 1.5rem',
-                background: `linear-gradient(135deg, ${colors.primary} 0%, #0d3811 100%)`,
+                background: isDark ? `linear-gradient(135deg, #0d210e 0%, #000000 100%)` : `linear-gradient(135deg, ${colors.primary} 0%, #0d3811 100%)`,
                 position: 'relative', overflow: 'hidden', color: '#fff', textAlign: 'center'
             }}>
                 {/* Floating Leaves */}
@@ -446,13 +496,36 @@ const LandingPage = () => {
                     <p style={{ fontSize: '1.2rem', color: colors.accent1, marginBottom: '4rem', lineHeight: 1.6 }}>Ready to make a difference? Whether you want to donate surplus food, register your NGO, or drive change directly in your neighborhood.</p>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center' }}>
-                        <button onClick={() => navigate('/signup')} className="pill-btn-hover" style={{ background: '#fff', color: colors.primary, padding: '1.2rem 2.5rem', borderRadius: '999px', fontWeight: 800, fontSize: '1.1rem', border: 'none', cursor: 'pointer', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+                        <button onClick={() => navigate('/signup')} className="pill-btn-hover" style={{ background: isDark ? colors.secondary : '#fff', color: isDark ? '#121212' : colors.primary, padding: '1.2rem 2.5rem', borderRadius: '999px', fontWeight: 800, fontSize: '1.1rem', border: 'none', cursor: 'pointer', boxShadow: '0 10px 30px rgba(0,0,0,0.2)', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
                             Donate Food Today
                         </button>
                         <button onClick={() => navigate('/signup')} style={{ background: 'transparent', color: '#fff', border: `2px solid ${colors.accent1}`, padding: '1.2rem 2.5rem', borderRadius: '999px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'}>
                             Register NGO
                         </button>
-                        <button onClick={() => navigate('/signup')} style={{ background: 'transparent', color: '#fff', border: `2px solid transparent`, padding: '1.2rem 2.5rem', borderRadius: '999px', fontWeight: 700, cursor: 'pointer' }} onMouseOver={e => e.currentTarget.style.textDecoration = 'underline'} onMouseOut={e => e.currentTarget.style.textDecoration = 'none'}>
+                        <button 
+                            onClick={() => navigate('/signup')} 
+                            style={{ 
+                                background: 'transparent', 
+                                color: isDark ? '#ffcc80' : '#ffcc80', 
+                                border: `2px solid #ffcc80`, 
+                                padding: '1.2rem 2.5rem', 
+                                borderRadius: '999px', 
+                                fontWeight: 800, 
+                                fontSize: '1.1rem',
+                                cursor: 'pointer', 
+                                transition: 'all 0.3s' 
+                            }} 
+                            onMouseOver={e => {
+                                e.currentTarget.style.background = '#ffcc80';
+                                e.currentTarget.style.color = '#1B5E20';
+                                e.currentTarget.style.transform = 'scale(1.05)';
+                            }} 
+                            onMouseOut={e => {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = '#ffcc80';
+                                e.currentTarget.style.transform = 'scale(1)';
+                            }}
+                        >
                             Volunteer With Us
                         </button>
                     </div>
@@ -460,11 +533,11 @@ const LandingPage = () => {
             </section>
 
             {/* Footer */}
-            <footer style={{ background: '#0a1a0d', color: colors.accent1, padding: '3rem 1.5rem', textAlign: 'center' }}>
+            <footer style={{ background: isDark ? '#050a06' : '#0a1a0d', color: colors.accent1, padding: '3rem 1.5rem', textAlign: 'center', borderTop: isDark ? '1px solid #111' : 'none' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
                     <Leaf size={24} /> <span style={{ fontSize: '1.2rem', fontWeight: 700, color: '#fff' }}>FeedForward App</span>
                 </div>
-                <p style={{ fontSize: '0.9rem', opacity: 0.8 }}>© {new Date().getFullYear()} FeedForward Technologies. Built for sustainable logistics.</p>
+                <p style={{ fontSize: '0.9rem', opacity: 0.8, color: isDark ? '#666' : colors.accent1 }}>© {new Date().getFullYear()} FeedForward Technologies. Built for sustainable logistics.</p>
             </footer>
 
             {/* Additional Inline CSS for interactions */}
@@ -481,8 +554,13 @@ const LandingPage = () => {
                     .mobile-toggle { display: flex !important; }
                     .hide-mobile { display: none !important; }
                 }
+                .mobile-toggle { display: flex; }
                 .pill-btn-primary:active { transform: scale(0.95) !important; }
                 .pill-btn-outline:hover { background: #4CAF50 !important; color: white !important; }
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 0.5; }
+                    100% { transform: scale(1.1); opacity: 0.8; }
+                }
             `}} />
         </div>
     );

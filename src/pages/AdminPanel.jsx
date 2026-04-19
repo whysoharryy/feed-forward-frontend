@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { CheckCircle, XCircle, Users, BarChart3, ShieldAlert } from 'lucide-react';
+import { CheckCircle, XCircle, Users, BarChart3, ShieldAlert, Clock, Star } from 'lucide-react';
+import ExpiryTimer from '../components/ExpiryTimer';
 import { Bar, Pie } from 'react-chartjs-2';
 import 'chart.js/auto';
 import toast from 'react-hot-toast';
@@ -38,6 +39,13 @@ const AdminPanel = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const getAverageRating = (userId) => {
+        const userListings = listings.filter(l => l.donorId === userId && l.feedback?.rating);
+        if (userListings.length === 0) return null;
+        const sum = userListings.reduce((acc, l) => acc + l.feedback.rating, 0);
+        return (sum / userListings.length).toFixed(1);
+    };
+
     const pendingListings = listings.filter(l => l.status === 'pending_verification');
 
     const handleVerification = async (listing, approved) => {
@@ -58,20 +66,34 @@ const AdminPanel = () => {
         );
     }
 
-    // Chart Data Preparation
+    // Simplified Analytics Meta-Stats
+    const totalCount = listings.length;
+    const deliveredCount = listings.filter(l => l.status === 'completed').length;
+    const inTransitCount = listings.filter(l => l.status === 'claimed').length;
+    const successRate = totalCount > 0 ? ((deliveredCount / totalCount) * 100).toFixed(0) : 0;
+
+    const easyStats = {
+        successRate: successRate + '%',
+        totalVolume: listings.reduce((sum, l) => sum + (parseFloat(l.quantity) || 0), 0).toFixed(0),
+        activeDeliveries: inTransitCount,
+        rejectedCount: listings.filter(l => l.status === 'rejected').length
+    };
+
     const statusCounts = {
         pending: listings.filter(l => l.status === 'pending_verification').length,
         verified: listings.filter(l => l.status === 'verified').length,
-        claimed: listings.filter(l => l.status === 'claimed').length,
-        completed: listings.filter(l => l.status === 'completed').length,
+        claimed: inTransitCount,
+        completed: deliveredCount,
+        rejected: easyStats.rejectedCount,
     };
 
     const chartData = {
-        labels: ['Pending', 'Verified (Active)', 'Claimed', 'Completed'],
+        labels: ['Awaiting Check', 'Ready for Pickup', 'On the Way', 'Delivered', 'Quality Rejected'],
         datasets: [{
-            label: 'Donation Statuses',
-            data: [statusCounts.pending, statusCounts.verified, statusCounts.claimed, statusCounts.completed],
-            backgroundColor: ['#f57c00', '#2E7D32', '#0288d1', '#388e3c'],
+            data: [statusCounts.pending, statusCounts.verified, statusCounts.claimed, statusCounts.completed, statusCounts.rejected],
+            backgroundColor: ['#f57c00', '#2e7d32', '#0288d1', '#4caf50', '#d32f2f'],
+            borderWidth: 2,
+            borderColor: '#ffffff'
         }]
     };
 
@@ -98,7 +120,7 @@ const AdminPanel = () => {
                 </div>
                 <div className="card flex-center" style={{ flexDirection: 'column' }}>
                     <BarChart3 size={28} color="var(--primary)" style={{ marginBottom: '0.5rem' }} />
-                    <h3>{stats.totalFoodSaved} kg</h3>
+                    <h3>{stats.totalFoodSaved} units</h3>
                     <p style={{ margin: 0 }}>Food Saved</p>
                 </div>
             </div>
@@ -153,12 +175,18 @@ const AdminPanel = () => {
                                             <h3 style={{ margin: 0 }}>{listing.foodType}</h3>
                                             <span className="badge badge-pending">PENDING</span>
                                         </div>
-                                        <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>{listing.quantity} kg • Listed by {listing.donorName}</p>
+                                        <p style={{ marginTop: '0.5rem', fontWeight: 600 }}>{listing.quantity} units • Listed by {listing.donorName}</p>
                                         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{listing.description || 'No description provided.'}</p>
 
-                                        <div style={{ background: 'var(--bg-color)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginTop: '1rem' }}>
-                                            <p style={{ margin: 0, fontSize: '0.9rem' }}><strong>Freshness Gauge:</strong> {listing.freshness}/10</p>
-                                            <p style={{ margin: 0, fontSize: '0.9rem' }}><strong>Timestamp:</strong> {new Date(listing.timestamp).toLocaleString()}</p>
+                                        <div style={{ background: 'var(--bg-color)', padding: '0.75rem', borderRadius: 'var(--radius-sm)', marginTop: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <div>
+                                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Expires In</p>
+                                                <ExpiryTimer expiryTime={listing.expiryTime} />
+                                            </div>
+                                            <div style={{ textAlign: 'right' }}>
+                                                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>Listed At</p>
+                                                <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{new Date(listing.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                                            </div>
                                         </div>
 
                                         <div className="flex-between" style={{ marginTop: '1.5rem', gap: '1rem' }}>
@@ -180,25 +208,31 @@ const AdminPanel = () => {
             {activeTab === 'analytics' && (
                 <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
                     <div className="card">
-                        <h3>Donation Status Distribution</h3>
+                        <h3>Food Journey Overview</h3>
                         <div style={{ maxWidth: '300px', margin: '0 auto' }}>
-                            <Pie data={chartData} />
+                            <Pie data={chartData} options={{
+                                plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15 } } }
+                            }} />
                         </div>
                     </div>
                     <div className="card">
                         <h3>Platform Impact</h3>
                         <ul style={{ listStyle: 'none', padding: 0, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <li className="flex-between" style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                                <span>Meals Served</span>
-                                <strong style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{stats.mealsServed}</strong>
+                            <li className="flex-between" style={{ paddingBottom: '0.8rem', borderBottom: '1px solid var(--border-color)' }}>
+                                <span>Platform Success Rate</span>
+                                <strong style={{ fontSize: '1.2rem', color: 'var(--success)' }}>{easyStats.successRate}</strong>
                             </li>
-                            <li className="flex-between" style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                                <span>CO2 Emissions Reduced</span>
-                                <strong style={{ fontSize: '1.2rem', color: 'var(--success)' }}>{stats.co2Reduced} kg</strong>
+                            <li className="flex-between" style={{ paddingBottom: '0.8rem', borderBottom: '1px solid var(--border-color)' }}>
+                                <span>Total Volume Handled</span>
+                                <strong style={{ fontSize: '1.2rem', color: 'var(--primary)' }}>{easyStats.totalVolume} units</strong>
                             </li>
-                            <li className="flex-between" style={{ paddingBottom: '0.5rem', borderBottom: '1px solid var(--border-color)' }}>
-                                <span>Active Volunteers</span>
-                                <strong style={{ fontSize: '1.2rem', color: 'var(--info)' }}>{stats.activeVolunteers}</strong>
+                            <li className="flex-between" style={{ paddingBottom: '0.8rem', borderBottom: '1px solid var(--border-color)' }}>
+                                <span>Currently on the way</span>
+                                <strong style={{ fontSize: '1.2rem', color: 'var(--info)' }}>{easyStats.activeDeliveries} deliveries</strong>
+                            </li>
+                            <li className="flex-between" style={{ paddingBottom: '0.8rem', borderBottom: '1px solid var(--border-color)' }}>
+                                <span>Rejected for Safety</span>
+                                <strong style={{ fontSize: '1.2rem', color: 'var(--danger)' }}>{easyStats.rejectedCount} items</strong>
                             </li>
                         </ul>
                     </div>
@@ -212,23 +246,31 @@ const AdminPanel = () => {
                             <tr style={{ borderBottom: '2px solid var(--border-color)', textAlign: 'left' }}>
                                 <th style={{ padding: '1rem' }}>Name</th>
                                 <th style={{ padding: '1rem' }}>Role</th>
-                                <th style={{ padding: '1rem' }}>Reputation / Trust</th>
+                                <th style={{ padding: '1rem' }}>Quality Rating</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.filter(u => u.role !== 'admin').map(user => (
-                                <tr key={user.uid} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                    <td style={{ padding: '1rem' }}>
-                                        <strong>{user.name}</strong><br />
-                                        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{user.email}</span>
-                                    </td>
-                                    <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{user.role}</td>
-                                    <td style={{ padding: '1rem' }}>
-                                        {user.trustRating && <span>Trust: {user.trustRating}/100</span>}
-                                        {user.karma !== undefined && <span>Karma: {user.karma}</span>}
-                                    </td>
-                                </tr>
-                            ))}
+                            {users.filter(u => u.role !== 'admin').map(user => {
+                                const rating = getAverageRating(user.uid);
+                                return (
+                                    <tr key={user.uid} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                                        <td style={{ padding: '1rem' }}>
+                                            <strong>{user.name}</strong><br />
+                                            <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{user.email}</span>
+                                        </td>
+                                        <td style={{ padding: '1rem', textTransform: 'capitalize' }}>{user.role}</td>
+                                        <td style={{ padding: '1rem' }}>
+                                            {user.role === 'donor' ? (
+                                                rating ? (
+                                                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#f57f17', fontWeight: 600 }}>
+                                                        <Star size={14} fill="#f57f17" /> {rating}/5
+                                                    </span>
+                                                ) : <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>No ratings yet</span>
+                                            ) : <span style={{ color: 'var(--text-muted)' }}>—</span>}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>

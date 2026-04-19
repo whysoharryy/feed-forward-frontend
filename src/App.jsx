@@ -1,10 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { Toaster } from 'react-hot-toast';
 
 import Navbar from './components/Navbar';
 import ProtectedRoute from './components/ProtectedRoute';
+import FloatingChatButton from './components/FloatingChatButton';
 
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -15,7 +18,9 @@ import LiveFeed from './pages/LiveFeed';
 import VolunteerTasks from './pages/VolunteerTasks';
 import Profile from './pages/Profile';
 import LandingPage from './pages/LandingPage';
-import LiveMapPage from './pages/LiveMapPage';
+
+import ChatApp from './pages/ChatApp';
+import ImpactDashboard from './pages/ImpactDashboard';
 
 const LandingRoute = () => {
   const { currentUser } = useAuth();
@@ -34,74 +39,106 @@ const LandingRoute = () => {
 function App() {
   return (
     <Router>
-      <AuthProvider>
-        <div className="app-container">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<LandingRoute />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/live-map" element={<LiveMapPage />} />
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <div className="app-container">
+              <Navbar />
+              <FloatingChatButton />
+              <Routes>
+                <Route path="/" element={<LandingRoute />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
 
-            <Route
-              path="/profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute allowedRoles={['donor']}>
-                  <DonorDashboard />
-                </ProtectedRoute>
-              }
-            />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route
-              path="/add-donation"
-              element={
-                <ProtectedRoute allowedRoles={['donor']}>
-                  <AddDonation />
-                </ProtectedRoute>
-              }
-            />
+                <Route
+                  path="/chat"
+                  element={
+                    <ProtectedRoute>
+                      <ChatApp />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute allowedRoles={['admin']}>
-                  <AdminPanel />
-                </ProtectedRoute>
-              }
-            />
+                <Route
+                  path="/impact"
+                  element={
+                    <ProtectedRoute>
+                      <ImpactDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route
-              path="/feed"
-              element={
-                <ProtectedRoute allowedRoles={['ngo']}>
-                  <LiveFeed />
-                </ProtectedRoute>
-              }
-            />
+                <Route
+                  path="/impact"
+                  element={
+                    <ProtectedRoute>
+                      <ImpactDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute allowedRoles={['volunteer']}>
-                  <VolunteerTasks />
-                </ProtectedRoute>
-              }
-            />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={['donor']}>
+                      <DonorDashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </div>
-        <Toaster position="top-right" />
-      </AuthProvider>
+                <Route
+                  path="/add-donation"
+                  element={
+                    <ProtectedRoute allowedRoles={['donor']}>
+                      <AddDonation />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute allowedRoles={['admin']}>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/feed"
+                  element={
+                    <ProtectedRoute allowedRoles={['ngo']}>
+                      <LiveFeed />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="/tasks"
+                  element={
+                    <ProtectedRoute allowedRoles={['volunteer']}>
+                      <VolunteerTasks />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </div>
+            <Toaster position="top-right" />
+          </AuthProvider>
+        </LanguageProvider>
+      </ThemeProvider>
     </Router>
   );
 }
